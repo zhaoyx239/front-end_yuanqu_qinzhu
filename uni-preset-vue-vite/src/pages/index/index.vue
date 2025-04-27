@@ -1,10 +1,21 @@
 <template>
   <view class="content">
-    <image class="logo" src="/static/logo.png"></image>
     <view class="text-area">
-      <text class="title">{{ title }}</text>
+      <text class="system-title">生活园区勤工助学管理系统</text>
     </view>
-    <button class="login-btn" @click="goLogin">登录</button> <!-- 新增按钮 -->
+
+    <!-- 右上角显示 -->
+    <view class="top-right">
+      <button v-if="!hasLogin" class="small-btn" @click="goLogin">登录</button>
+      <view v-else class="user-wrapper" @click="toggleLogout">
+        <text class="username">{{ userName }}</text>
+      </view>
+    </view>
+
+    <!-- 下拉退出登录 -->
+    <view v-if="showLogout" class="logout-popup" @click="logout">
+      <text class="logout-text">退出登录</text>
+    </view>
   </view>
 </template>
 
@@ -12,53 +23,109 @@
 export default {
   data() {
     return {
-      title: 'Hello',
+      hasLogin: false,
+      userName: '',
+      showLogout: false
     }
   },
+  onShow() {
+    this.checkLoginStatus();
+  },
   methods: {
+    checkLoginStatus() {
+      const userInfo = uni.getStorageSync('userInfo');
+      if (userInfo && userInfo.userName) {
+        this.hasLogin = true;
+        this.userName = userInfo.userName;
+      } else {
+        this.hasLogin = false;
+        this.userName = '';
+      }
+    },
     goLogin() {
       uni.navigateTo({
         url: '/pages/login/login'
-      })
+      });
+    },
+    toggleLogout() {
+      this.showLogout = !this.showLogout;
+    },
+    logout() {
+      uni.removeStorageSync('userInfo');
+      this.hasLogin = false;
+      this.userName = '';
+      this.showLogout = false;
+
+      uni.showToast({
+        title: '已退出登录',
+        icon: 'none'
+      });
     }
-  },
+  }
 }
 </script>
 
-<style>
+<style scoped>
 .content {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  height: 100vh;
+  position: relative;
 }
 
-.logo {
-  height: 200rpx;
-  width: 200rpx;
-  margin-top: 200rpx;
-  margin-left: auto;
-  margin-right: auto;
-  margin-bottom: 50rpx;
-}
-
+/* 中间系统标题 */
 .text-area {
   display: flex;
   justify-content: center;
 }
 
-.title {
-  font-size: 36rpx;
-  color: #8f8f94;
+.system-title {
+  font-size: 40rpx;
+  color: #333;
+  font-weight: bold;
 }
 
-/* 新增登录按钮样式 */
-.login-btn {
-  margin-top: 50rpx;
-  width: 60%;
+.top-right {
+  position: absolute;
+  top: 20rpx;
+  right: 20rpx;
+}
+
+.small-btn {
+  font-size: 24rpx;
+  padding: 10rpx 20rpx;
   background-color: #007AFF;
   color: white;
-  padding: 20rpx;
+  border: none;
   border-radius: 10rpx;
+}
+
+.user-wrapper {
+  background-color: #eee;
+  padding: 10rpx 20rpx;
+  border-radius: 10rpx;
+}
+
+.username {
+  font-size: 24rpx;
+  color: #333;
+}
+
+.logout-popup {
+  position: absolute;
+  top: 80rpx;
+  right: 20rpx;
+  background-color: white;
+  border: 1px solid #ddd;
+  border-radius: 8rpx;
+  padding: 10rpx 20rpx;
+  z-index: 10;
+}
+
+.logout-text {
+  font-size: 24rpx;
+  color: red;
 }
 </style>
